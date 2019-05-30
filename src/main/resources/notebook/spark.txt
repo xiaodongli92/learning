@@ -1,0 +1,7 @@
+spark：
+	是类Hadoop MapReduce的通用并行框架，用友Hadoop MapReduce所具有的所有优点，但不同于的是JOB中间输出结果可以保存在内存中，从而不需要读写HDFS，
+	因此spark更适用于数据挖掘与机器学习等需要迭代的MapReduce算法。
+	spark启用了内存分布数据集，实际上它是对hadoop的补充，可以在hadoop文件系统中并行运行
+spark straming：
+	构建在spark上处理stream数据框架，基本的原理是将stream数据分成小的时间片段（几秒），以类似batch批量处理的方式来处理这小部分数据。
+	可以同时兼容批量和实时数据处理的逻辑和算法

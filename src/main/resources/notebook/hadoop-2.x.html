@@ -1,0 +1,927 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/><meta name="exporter-version" content="Evernote Mac 6.8 (453749)"/><meta name="altitude" content="82.67279052734375"/><meta name="author" content="hermit66888@163.com"/><meta name="created" content="2016-08-12 02:40:56 +0000"/><meta name="latitude" content="39.9787367291495"/><meta name="longitude" content="116.3061831517828"/><meta name="source" content="desktop.mac"/><meta name="updated" content="2016-08-18 10:40:14 +0000"/><title>hadoop高可用集群安装简介</title></head><body>
+<div><b><span style="color: rgb(255, 38, 0);">一、安装环境</span></b></div>
+<table style="-evernote-table:true;border-collapse:collapse;table-layout:fixed;margin-left:0px;width:100%;">
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:16.84359518754423%;">
+<div><b>主机名称</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:16.84359518754423%;">
+<div><b>IP</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.12101910828025%;">
+<div><b>安装软件</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.12101910828025%;">
+<div><b>角色描述</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:16.665%;">
+<div><b>NNmaster</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:16.665%;">
+<div><b>10.10.86.102</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>jdk hadoop</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>主namenode</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:16.665%;">
+<div><b>NNstandby</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:16.665%;">
+<div><b>10.10.96.162</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>dk hadoop</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>从namenode</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:16.665%;">
+<div><b>DN1</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:16.665%;">
+<div><b>10.10.96.56</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>dk hadoop zookeeper</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>datanode1、zookeeper服务</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:16.665%;">
+<div><b>DN2</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:16.665%;">
+<div><b>10.10.95.59</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>dk hadoop zookeeper</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>datanode2、zookeeper服务</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:16.665%;">
+<div><b>DN3</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:16.665%;">
+<div><b>10.10.88.135</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>dk hadoop zookeeper</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>datanode3、zookeeper服务</b></div>
+</td>
+</tr>
+</table>
+<div><b><br/></b></div>
+<div><b><span style="color: rgb(255, 38, 0);">二、安装步骤</span></b></div>
+<div><b>1、创建用户</b></div>
+<table style="-evernote-table:true;border-collapse:collapse;margin-left:0px;table-layout:fixed;width:100%;">
+<tr>
+<td style="border: 1px solid rgb(219, 219, 219); padding: 10px; margin: 0px;width:16.065109695682946%;">
+<div><b>操作步骤</b></div>
+</td>
+<td style="border: 1px solid rgb(219, 219, 219); padding: 10px; margin: 0px;width:50.955414012738856%;">
+<div><b>操作方法</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:32.90870488322717%;">
+<div><b>备注</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:20%;">
+<div><b>1.创建用户</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:20%;">
+<div><b>useradd -d /home/hduser/ -m hduser     </b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:20%;">
+<div><b>在home下创建名为:hduser </b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:20%;">
+<div><b>2.创建hadoop的用户组</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:20%;">
+<div><b>groupadd hadoop</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:20%;">
+<div><b>创建hadoop用户组</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:20%;">
+<div><b>3.添加用户到组</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:20%;">
+<div><b>usermod -g hadoop hduser</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:20%;">
+<div><b> 把创建好的用户添加到hadoop组里面</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:20%;">
+<div><b>4.创建密钥</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:20%;">
+<div><b>切换su - hduser 用户执行ssh-keygen-t rsa</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:20%;">
+<div><b>注：机器上需要安装ssh</b></div>
+</td>
+</tr>
+</table>
+<div><b><br/></b></div>
+<div><span style="color: rgb(255, 38, 0);"><b>注：每个机器都要执行相同的操作，然后，把生成</b><span style="font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; float: none; background-color: rgb(255, 255, 255);">id_rsa.pub文件合并到</span> <span style="font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; float: none; background-color: rgb(255, 255, 255);"><b>authorized_keys 这个文件中，复制到各个机器上（</b></span><span style="font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; float: none; background-color: rgb(255, 255, 255);"><b>authorized_keys为自己创建的文件如：</b></span><b><span style="font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; float: none; background-color: rgb(255, 255, 255);">cat id_rsa.pub &gt;&gt; authorized_keys<b>）</b></span></b></span></div>
+<div><b>2、修改host文件</b></div>
+<table style="-evernote-table:true;border-collapse:collapse;margin-left:0px;table-layout:fixed;width:100%;">
+<tr>
+<td style="border: 1px solid rgb(219, 219, 219); padding: 10px; margin: 0px;width:16.065109695682946%;">
+<div><b>IP</b></div>
+</td>
+<td style="border: 1px solid rgb(219, 219, 219); padding: 10px; margin: 0px;width:50.8138711960368%;">
+<div><b>映射名称</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.05024769992923%;">
+<div><b>备注</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div><b>10.10.86.102</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div>hdmaster</div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div><b>主namenode节点</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div><b>10.10.96.162</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div>hdmasterstandby</div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div><b>从namenode节点</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div><b>10.10.96.56</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div>hdslave1</div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div><b>datanode1节点下，并且也是zookeeper指定的名称</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div><b>10.10.95.59</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div>hdslave2</div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div><b>datanode2节点下，并且也是zookeeper指定的名称</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div><b>10.10.88.135</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div>hdslave3</div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:25%;">
+<div><b>datanode3节点下，并且也是zookeeper指定的名称</b></div>
+</td>
+</tr>
+</table>
+<div><span style="color: rgb(255, 38, 0);"><b>注：需要同步到每个机器上的host文件，特别注意：修改如果机器上有127.0.0.1指向了计算机名，请修改为具体IP方式指向计算机名。</b></span></div>
+<div><b>3、安装zookeeper</b></div>
+<table style="-evernote-table:true;border-collapse:collapse;margin-left:0px;table-layout:fixed;width:100%;">
+<tr>
+<td style="border: 1px solid rgb(219, 219, 219); padding: 10px; margin: 0px;width:16.348195329087048%;">
+<div><b>序号</b></div>
+</td>
+<td style="border: 1px solid rgb(219, 219, 219); padding: 10px; margin: 0px;width:50.318471337579616%;">
+<div><b>操作</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.26256192498231%;">
+<div><b>备注</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>1</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>下载zookeeper，解压到对应的机器上</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>2</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><span style="color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; float: none; background-color: rgb(255, 255, 255);"><b>修改zk配置，将zk安装目录下conf/zoo_sample.cfg重命名zoo.cfg，修改其中的内容：</b></span></b></div>
+<div>
+<div style="padding: 0px; color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px;"><b><span style="padding: 0px; color: rgb(0, 0, 0);"># The number of milliseconds of each tick<br/>
+# 服务器与客户端之间交互的基本时间单元（ms） <br/>
+tickTime</span>=<span style="padding: 0px; color: rgb(128, 0, 128);">2000</span><span style="padding: 0px; color: rgb(0, 0, 0);">   <br/>
+<br/>
+# The number of ticks that the initial <br/>
+# synchronization phase can take <br/>
+# zookeeper所能接受的客户端数量 <br/>
+initLimit</span>=<span style="padding: 0px; color: rgb(128, 0, 128);">10</span><span style="padding: 0px; color: rgb(0, 0, 0);"> <br/>
+<br/>
+# The number of ticks that can pass between <br/>
+# sending a request and getting an acknowledgement <br/>
+# 服务器和客户端之间请求和应答之间的时间间隔 <br/>
+syncLimit</span>=<span style="padding: 0px; color: rgb(128, 0, 128);">5</span><span style="padding: 0px; color: rgb(0, 0, 0);"><br/>
+<br/>
+# the directory where the snapshot is stored. <br/>
+# </span><span style="padding: 0px; color: rgb(0, 0, 255);">do</span> not use /tmp <span style="padding: 0px; color: rgb(0, 0, 255);">for</span> storage, /<span style="padding: 0px; color: rgb(0, 0, 0);">tmp here is just <br/>
+# example sakes. <br/>
+# 保存zookeeper数据，日志的路径<br/>
+dataDir</span>=/home/hadoop/data/<span style="padding: 0px; color: rgb(0, 0, 0);">zookeeper<br/>
+<br/>
+# the port at </span><span style="padding: 0px; color: rgb(0, 0, 255);">which</span><span style="padding: 0px; color: rgb(0, 0, 0);"> the clients will connect <br/>
+# 客户端与zookeeper相互交互的端口 <br/>
+clientPort</span>=<span style="padding: 0px; color: rgb(128, 0, 128);">2181</span><span style="padding: 0px; color: rgb(0, 0, 0);"> </span></b>
+<div><b>server.<span style="padding: 0px; color: rgb(128, 0, 128);">1</span>= hdslave1:<span style="padding: 0px; color: rgb(128, 0, 128);">2888</span>:<span style="padding: 0px; color: rgb(128, 0, 128);">3888</span> </b></div>
+<div><b><span style="padding: 0px; color: rgb(0, 0, 0);">server.</span><span style="padding: 0px; color: rgb(128, 0, 128);">2</span>= hdslave2:<span style="padding: 0px; color: rgb(128, 0, 128);">2888</span>:<span style="padding: 0px; color: rgb(128, 0, 128);">3888</span> </b></div>
+<div><b><span style="padding: 0px; color: rgb(0, 0, 0);">server.</span><span style="padding: 0px; color: rgb(128, 0, 128);">3</span>= hdslave3:<span style="padding: 0px; color: rgb(128, 0, 128);">2888</span>:<span style="padding: 0px; color: rgb(128, 0, 128);">3888</span></b></div>
+<b><span style="padding: 0px; color: rgb(0, 0, 0);"><br/>
+#server.A</span>=B:C:D  其中A是一个数字，代表这是第几号服务器；B是服务器的IP地址；C表示服务器与群集中的“领导者”交换信息的端口；当领导者失效后，D表示用来执行选举时服务器相互通信的端口。</b></div>
+</div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>3</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><span style="color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; float: none; background-color: rgb(255, 255, 255);">接下来，</span><span style="padding: 0px; color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);"><b>在配置的dataDir目录下创建一个myid文件，里面写入一个0-255之间的一个随意数字，每个zk上这个文件的数字要是不一样的，这些数字应该是从1开始，依次写每个服务器。文件中序号要与dn节点下的zk配置序号一直，如：server.1=</b></span><span style="color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; float: none; background-color: rgb(255, 255, 255);"><b>dn1</b></span><span style="padding: 0px; color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);"><b>:2888:3888，那么</b></span><span style="color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; float: none; background-color: rgb(255, 255, 255);"><b>dn1节点下的myid</b></span><span style="padding: 0px; color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);"><b>配置文件应该写上1。</b></span></b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>4</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><span style="color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; float: none; background-color: rgb(255, 255, 255);"><b>分别在各个dn节点启动zk进程，命令如下:</b></span></b>
+<div style="padding: 0px; color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px;"><b>bin/zkServer.<span style="padding: 0px; color: rgb(0, 0, 255);">sh</span> start</b></div>
+</div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>5</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>验证：1.直接输入jps查看进程</b></div>
+<div><b>           2.bin/zkServer.<span style="padding: 0px; color: rgb(0, 0, 255);">sh</span> status <span style="color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; float: none; background-color: rgb(255, 255, 255);"><b>会出现一个leader和两个follower。</b></span></b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+</table>
+<div><b>4、安装hadoop</b></div>
+<table style="-evernote-table:true;border-collapse:collapse;margin-left:0px;table-layout:fixed;width:100%;">
+<tr>
+<td style="border: 1px solid rgb(219, 219, 219); padding: 10px; margin: 0px;width:16.348195329087048%;">
+<div><b>序号</b></div>
+</td>
+<td style="border: 1px solid rgb(219, 219, 219); padding: 10px; margin: 0px;width:50.318471337579616%;">
+<div><b>操作</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.26256192498231%;">
+<div><b>备注</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>1</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>下载hadoop文件，解压到对应的位置，修改系统环境变量</b></div>
+<div><b>vim ~/.bash_profile 添加</b></div>
+<div><b>export JAVA_HOME=/usr/java/jdk1.7.0_60</b></div>
+<div><b>export PATH=$JAVA_HOME/bin:$PATH</b></div>
+<div><b>export HADOOP_HOME=/opt/hadoop</b></div>
+<div><b>export PATH=$HADOOP_HOME/bin:$PATH  </b></div>
+<div><b>修改完成后，执行source ~/.bash_profile使修改立即生效 </b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>~/bash_profile在具体的用户下，如hduser 用户存在此系统文件</b></div>
+<div><b><br/></b></div>
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>2</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>进入解压完成的hadoop文件里面，进入到etc/hadoop 修改hadoop-env.sh、yarn-env.sh</b></div>
+<div><b>设置 export JAVA_HOME=/usr/java/jdk1.7.0_60  </b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>3</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>创建启动时需要的文件夹</b></div>
+<div>
+<div style="padding: 0px; color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px;">
+<div><b><span style="padding: 0px; color: rgb(0, 0, 255);">mkdir</span> -p /opt/data/hadoop/<span style="padding: 0px; color: rgb(0, 0, 0);">tmp</span></b></div>
+<div><b><span style="padding: 0px; color: rgb(0, 0, 255);">mkdir</span> -p /opt/data/hadoop/data/tmp/<span style="padding: 0px; color: rgb(0, 0, 0);">journal</span></b></div>
+<div><b><span style="padding: 0px; color: rgb(0, 0, 255);">mkdir</span> -p /opt/data/hadoop/data/dfs/<span style="padding: 0px; color: rgb(0, 0, 0);">name</span></b></div>
+<div><b><span style="padding: 0px; color: rgb(0, 0, 255);">mkdir</span> -p /opt/data/hadoop/data/dfs/<span style="padding: 0px; color: rgb(0, 0, 0);">data</span></b></div>
+<div><b><span style="padding: 0px; color: rgb(0, 0, 255);">mkdir</span> -p /opt/data/hadoop/data/yarn/<span style="padding: 0px; color: rgb(0, 0, 0);">local</span></b></div>
+<div><b><span style="padding: 0px; color: rgb(0, 0, 255);">mkdir</span> -p /opt/data/hadoop/log/yarn</b></div>
+</div>
+</div>
+<div><b><br/></b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><span style="color: rgb(0, 0, 0); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; orphans: auto; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; float: none; background-color: rgb(255, 255, 255);"><b>这里特别提醒，配置文件中的路径在启动集群之前，得存在（若不存在，请事先创建）</b></span></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>4</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>core-site.xml修改</b></div>
+<div><b>&lt;configuration&gt;</b></div>
+<div><b>   &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;fs.defaultFS&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdfs://cluster1&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;hadoop.tmp.dir&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;file:/opt/data/hadoop/tmp&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;io.file.buffer.size&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;131072&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;ha.zookeeper.quorum&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdslave1:2181,hdslave2:2181,hdslave3:2181&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>&lt;/configuration&gt;</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>cluster1为自定义名称可以指定任意的名称</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>4</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>修改hdfs-site.xml</b></div>
+<div><b>&lt;configuration&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.nameservices&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;cluster1&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.replication&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;3&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.namenode.name.dir&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;file:/opt/data/hadoop/data/dfs/name&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.datanode.data.dir&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;file:/opt/data/hadoop/data/dfs/data&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.namenode.secondary.http-address&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdmaster:9001&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.webhdfs.enabled&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;true&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.ha.namenodes.cluster1&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdmaster,hdmasterstandby&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.namenode.rpc-address.cluster1.hdmaster&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdmaster:9000&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.namenode.rpc-address.cluster1.hdmasterstandby&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdmasterstandby:9000&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b><br/></b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.namenode.http-address.cluster1.hdmaster&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdmaster:50070&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b><br/></b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.namenode.http-address.cluster1.hdmasterstandby&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdmasterstandby:50070&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b><br/></b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.namenode.shared.edits.dir&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;qjournal://hdslave1:8485;hdslave2:8485;hdslave3:8485/cluster1&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b><br/></b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.client.failover.proxy.provider.cluster1&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.ha.fencing.methods&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;sshfence&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.ha.fencing.ssh.private-key-files&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;/home/hduser/.ssh/id_rsa&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.journalnode.edits.dir&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;/opt/data/hadoop/data/tmp/journal&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.ha.automatic-failover.enabled&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;true&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.journalnode.http-address&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;0.0.0.0:8480&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;dfs.journalnode.rpc-address&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;0.0.0.0:8485&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;ha.zookeeper.quorum&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdslave1:2181,hdslave2:2181,hdslave3:2181&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>&lt;/configuration&gt;                                                                 </b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>5</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>修改yarn-site.xml</b></div>
+<div><b>&lt;configuration&gt;</b></div>
+<div><b>  &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.nodemanager.aux-services&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;mapreduce_shuffle&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.nodemanager.aux-services.mapreduce.shuffle.class&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;org.apache.hadoop.mapred.ShuffleHandler&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.connect.retry-interval.ms&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;2000&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.ha.enabled&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;true&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.ha.rm-ids&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;rm1,rm2&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;ha.zookeeper.quorum&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdslave1:2181,hdslave2:2181,hdslave3:2181&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.ha.automatic-failover.enabled&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;true&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.hostname.rm1&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdmaster&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.hostname.rm2&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdmasterstandby&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.ha.id&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;rm1&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.recovery.enabled&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;true&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.zk-state-store.address&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdslave1:2181,hdslave2:2181,hdslave3:2181&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.store.class&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.zk-address&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdslave1:2181,hdslave2:2181,hdslave3:2181&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.cluster-id&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;cluster1-yarn&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.app.mapreduce.am.scheduler.connection.wait.interval-ms&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;5000&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    <span style="color: rgb(255, 126, 121);">&lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">        &lt;name&gt;yarn.resourcemanager.address.rm1&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">        &lt;value&gt;hdmaster:8032&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">        &lt;name&gt;yarn.resourcemanager.scheduler.address.rm1&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">        &lt;value&gt;hdmaster:8030&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">        &lt;name&gt;yarn.resourcemanager.webapp.address.rm1&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">        &lt;value&gt;hdmaster:8088&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">        &lt;name&gt;yarn.resourcemanager.resource-tracker.address.rm1&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">        &lt;value&gt;hdmaster:8031&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">        &lt;name&gt;yarn.resourcemanager.admin.address.rm1&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">        &lt;value&gt;hdmaster:8033&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 126, 121);">    &lt;/property&gt;</span></b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.ha.admin.address.rm1&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;hdmaster:23142&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.nodemanager.aux-services&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;mapreduce_shuffle&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.nodemanager.aux-services.mapreduce.shuffle.class&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;org.apache.hadoop.mapred.ShuffleHandler&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.nodemanager.local-dirs&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;/opt/data/hadoop/data/yarn/local&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.nodemanager.log-dirs&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;/opt/data/hadoop/log/yarn&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;mapreduce.shuffle.port&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;23080&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.client.failover-proxy-provider&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;org.apache.hadoop.yarn.client.ConfiguredRMFailoverProxyProvider&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>    &lt;property&gt;</b></div>
+<div><b>        &lt;name&gt;yarn.resourcemanager.ha.automatic-failover.zk-base-path&lt;/name&gt;</b></div>
+<div><b>        &lt;value&gt;/yarn-leader-election&lt;/value&gt;</b></div>
+<div><b>    &lt;/property&gt;</b></div>
+<div><b>&lt;/configuration&gt;                                                 </b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>注意：红色部分在从namenode上要修改成从的地址</b></div>
+<div><b>如：</b></div>
+<div><b><span style="color: rgb(255, 147, 0);"> &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;name&gt;yarn.resourcemanager.address.rm2&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;value&gt;hdmasterstandby:8032&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;name&gt;yarn.resourcemanager.scheduler.address.rm2&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;value&gt;hdmasterstandby:8030&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;name&gt;yarn.resourcemanager.webapp.address.rm2&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;value&gt;hdmasterstandby:8088&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;name&gt;yarn.resourcemanager.resource-tracker.address.rm2&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;value&gt;hdmasterstandby:8031&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;name&gt;yarn.resourcemanager.admin.address.rm2&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;value&gt;hdmasterstandby:8033&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;name&gt;yarn.resourcemanager.ha.admin.address.rm2&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;value&gt;hdmasterstandby:23142&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;/property&gt;                                       </span></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>6</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>修改slaves文件添加</b></div>
+<div><b>hdslave1</b></div>
+<div><b>hdslave2</b></div>
+<div><b>hdslave3</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>7</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>修改完以后，把文件复制到其它机器上</b></div>
+<div><b>scp -r /opt/hadoop hdmasterstandby:/opt/</b></div>
+<div><b>scp -r /opt/hadoop hdslave1:/opt/</b></div>
+<div><b>scp -r /opt/hadoop hdslave2:/opt/</b></div>
+<div><b>scp -r /opt/hadoop hdlsave3:/opt/</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>修改datanode节点上的yarn-site.xml文件添加从namenode的配置</b></div>
+<div>
+<div><b><span style="color: rgb(255, 147, 0);">&lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;name&gt;yarn.resourcemanager.address.rm2&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;value&gt;hdmasterstandby:8032&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;name&gt;yarn.resourcemanager.scheduler.address.rm2&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;value&gt;hdmasterstandby:8030&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;name&gt;yarn.resourcemanager.webapp.address.rm2&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;value&gt;hdmasterstandby:8088&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;name&gt;yarn.resourcemanager.resource-tracker.address.rm2&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;value&gt;hdmasterstandby:8031&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;name&gt;yarn.resourcemanager.admin.address.rm2&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;value&gt;hdmasterstandby:8033&lt;/value&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;/property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;property&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;name&gt;yarn.resourcemanager.ha.admin.address.rm2&lt;/name&gt;</span></b></div>
+<div><b><span style="color: rgb(255, 147, 0);">        &lt;value&gt;hdmasterstandby:23142&lt;/value&gt;</span></b></div>
+</div>
+<div><b><span style="color: rgb(255, 147, 0);">    &lt;/property&gt;                                       </span></b></div>
+</td>
+</tr>
+</table>
+<div><b>5、启动hadoop</b></div>
+<table style="-evernote-table:true;border-collapse:collapse;margin-left:0px;table-layout:fixed;width:100%;">
+<tr>
+<td style="border: 1px solid rgb(219, 219, 219); padding: 10px; margin: 0px;width:16.4897381457891%;">
+<div><b>序号</b></div>
+</td>
+<td style="border: 1px solid rgb(219, 219, 219); padding: 10px; margin: 0px;width:50.17692852087756%;">
+<div><b>操作</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.26256192498231%;">
+<div><b>备注</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>1</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>在dn1、dn2、dn3启动zookeeper进行入zookeeper目录bin/zkServer.sh start</b></div>
+<div><b><br/></b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>2</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>启动journalnode 主namenode节点上</b></div>
+<div><b>sbin/hadoop-daemons.sh start journalnode</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>3</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>格式化namenode 主namenode节点</b></div>
+<div><b>hdfs namenode -format</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>4</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>同步主namenode数据到从namenode上</b></div>
+<div><b>1.进入主hadoop/sbin 目录执行 hadoop-daemon.sh start namenode</b></div>
+<div><b>2.在从namenode上执行 hdfs namenode -bootstrapStandby</b></div>
+<div><b>3.在从节点上启动namenode 进入从hadoop/sbin 目录执行 hadoop-daemon.sh start namenode</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>5</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>格式化 zkfc 在主namenode节点上操作</b></div>
+<div><b>hdfs zkfc -formatZK</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>6</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>在主namenode节点上执行</b></div>
+<div><b>方法一、进入主hadoop/sbin 目录执行 ./start-all.sh 启动hadoop </b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>7</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>启动 job history server 可选 </b></div>
+<div><b>在主namenode节点上</b></div>
+<div><b>进入主hadoop/sbin 目录执行 mr-jobhistory-daemon.sh start historyserver</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b><br/></b></div>
+</td>
+</tr>
+</table>
+<div><b>6、验证启动情况</b></div>
+<div><b><br/></b></div>
+<div><b><br/></b></div>
+<table style="-evernote-table:true;border-collapse:collapse;margin-left:0px;table-layout:fixed;width:100%;">
+<tr>
+<td style="border: 1px solid rgb(219, 219, 219); padding: 10px; margin: 0px;width:16.70205237084218%;">
+<div><b>序号</b></div>
+</td>
+<td style="border: 1px solid rgb(219, 219, 219); padding: 10px; margin: 0px;width:49.96461429582449%;">
+<div><b>地址</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.26256192498231%;">
+<div><b>备注</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>1</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>http://10.10.86.102:50070</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>namenode 1</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>2</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>http://10.10.96.162:50070</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>namenode 2</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>3</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>http://10.10.86.102:8088</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>ResourceManager 主节点</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>4</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>http://10.10.96.162:8088</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>ResourceManager 从节点</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>5</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>http://10.10.96.56:50075</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>datanode 节点1</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>6</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>http://10.10.95.59:50075</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>datanode 节点2</b></div>
+</td>
+</tr>
+<tr>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>7</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>http://10.10.88.135:50075</b></div>
+</td>
+<td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
+<div><b>datanode 节点3</b></div>
+</td>
+</tr>
+</table>
+<div><br/></div>
+<div><br/></div>
+<div><br/></div>
+<div><br/></div>
+<div><br/></div>
+<div><br/></div>
+</body></html>

@@ -1,0 +1,142 @@
+NameNode（NN）:
+	存储元数据metadata、元数据保存在内存中、保存文件：block、DataNode之间的映射关系
+	主要功能：接受客户端的读写服务
+	保存metadata信息包括：文件owership和permissions、文件包含那些快、block存储在哪个DataNode（由DataNode启动时上报）
+	NameNode的metadata信息在启动后会加载到内存中
+		metadata存储到磁盘文件名为："fsimage"
+		blobk的位置信息不会保存到fsimage
+		edits记录对metadata的操作日志
+SecondaryNameNode（SNN）：
+	它不是NN的备份（但可以做备份），他的主要工作是帮助NN合并edits log，减少NN启动时间
+	SNN执行合并时机：
+		根据配置文件设置的时间间隔fs.checkpoint.period，默认3600秒
+		根据配置文件设置edits log 大小fk.checkpoint.size，规定edits文件的最大默认值是64Mb
+DataNode（DN）:
+	存储文件内容、文件内容保存在磁盘中、维护了block id到DataNode本地文件的映射关系
+	存储数据（Block）
+	启动DN线程的时候会想NN汇报block信息
+	通过向NN发送心跳保持与其联系（3秒一次），如果NN十分钟没有收到DN的心跳，则认为其已经lost，copy其上的block到其他DN
+block：
+	副本放置策略：
+	 	第一个副本：放置在上传文件的DN；如果是集群外提交，则随机挑选一台磁盘不太满，CPU不太忙的节点
+		第二个副本：放置在第一个副本不同的机架的节点上
+		第三个副本：与第二个副本相同机架的节点
+		更多副本：随机节点
+HDFS优点：
+	高容错性：数据自动保存多个副本、副本丢失后自动恢复
+	适合批处理：移动计算而非数据、数据位置暴露给计算框架
+	适合大数据处理：GB、TB甚至PB级数据、百万规模以上的文件数量、10K+节点
+	可构建在廉价机器上：通过多副本提高可靠性、提供了容错和恢复机制
+HDFS缺点：
+	延迟数据访问：比如毫秒级、低延迟和高吞吐率
+	小文件存取：占用NameNode大量内存、寻道时间超过读取时间
+	并发写入、文件随机修改：一个文件只能有一个写者、仅支持append
+HDFS数据存储单元（block）：
+	文件被切分成固定大小的数据块：
+		默认数据快大小为64Mb，可配置
+		如文件大小不到64Mb，则单独存成一个block
+	一个文件存储方式：
+		按大小被切分成若干个block，存储到不同的节点上
+		默认情况下每个block都有三个副本
+	block大小和副本数通过client端上传文件时设置，文件上传成功后副本数可以变更、blobk size不能变更
+HDFS读流程：
+	HDFS client调用Distributed FileSystem的open方法请求NameNode节点block localtions信息，
+	再通过FSData InputStream的read方法，并发的去读多个副本中的一个block，
+	读完之后关闭这个流，然后在客户端形成一个统一的文件
+HDFS写流程：
+	HDFS client调用Distributed FileSystem的create方法，创建文件并将文件的信息传给NameNode，
+	NameNode根据文件的大小计算切出多少个block，NameNode将block的数量、与DataNode的映射关系等等返回给client
+	再通过FSData OutputStream的write方法，将block写入到第一个DataNode上，
+	然后由这个DataNode创建一个新的线程往其他的DataNode按照副本放置规则写block，
+	再又第二个DataNode创建新的线程去往其他的DataNode写block，依次类推
+	第一个DataNode写完之后给客户端一个完成的回应，关闭流，然后client再给NameNode发一个回馈信息
+安全模式
+	HDFS再重启的时候，会立马进入安全模式
+	namenode启动的时候，首先将映像文件（fsimage）载入内存，并执行编辑日志（edits）中的各项操作
+	一旦在内存中成功建立文件系统元数据的映射，则创建一个新的fsimage文件（这个操作不需要SecondaryNameNode）和一个空的编辑日志
+	此刻NameNode运行在安全模式。即NameNode的文件系统对于客户端来说是只读的（显示目录，显示文件内容等。写、删除、重命名都会失败）
+	在此阶段NameNode收集各个DataNode的报告，当数据块达到最小副本数以上时，会被认为是“安全”的，在一定比例（可设置）的数据块被确定为“安全”后，再过若干时间，安全模式结束
+	当检测到副本数不足的数据块时，该快会被复制到达到最小副本数，系统中数据块的位置并不是由NameNode维护的，而是以块列表形式存储在DataNode中
+免密码ssh登录：
+	ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
+	cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys  --将公钥追加到本地认证文件中
+	scp ~/.ssh/id_dsa.pub root@node2:~/.ssh/authorized_keys_tmp --将公钥拷贝到另外一台服务中，
+	cat ~/.ssh/authorized_keys_tmp >> ~/.ssh/authorized_keys --将node1中
+配置HDFS：
+	解压完之后，进入hadoop-x/conf
+	core-site.xml：==》
+<configuration>
+	<property>
+		<name>fs.default.name</name>
+		<value>hdfs://node1:9000</value><!--NameNode地址-->
+	</property>
+	<property>
+		<name>hadoop.tmp.dir</name><!--hadoop临时目录-->
+		<value>/opt/hadoop-1.2</value>
+	</property>
+</configuration>
+	hdfs-site.xml:==》
+<configuration>
+	<property>
+		<name>dfs.replication</name><!--hadoop副本数量-->
+		<value>2</value>
+	</property>
+</configuration>
+	slaves:（DataNode地址）==》
+		node2
+		node3
+	masters：（SecondaryNameNode地址）==》
+		node2
+配置hadoop JAVA_HOME：
+	进入hadoop-x/conf/hadoop-env.sh
+		export JAVA_HOME=/usr/lib/jvm/java-1.8.0
+配置MapReduce JobTracker：
+	conf/mapred-site.xml
+<configuration>
+	<property>
+		<name>mapred.job.tracker</name><!--JobTracker机器-->
+		<value>node1:9001</value>
+	</property>
+</configuration>
+
+启动hdfs错误：（没有到主机的路由）
+	1、有可能是hosts未配置
+	2、有可能是防火墙未关闭（centos7 firewall作为防火墙）
+		查看防火墙状态：firewall-cmd --state；
+		关闭防火墙：systemctl stop firewalld.service
+		禁止firewall开机启动：systemctl disable firewalld.service
+Hadoop计算框架（shuffler）：
+	在mapper和reducer中间的一个步骤，
+	可以把mapper的输出按照某种key值重新切分和组合成n份，把key值符合某种范围的输出送到特定的reducer那里去处理
+	步骤中包含partition（分区：按照key的hash 模运算 进行分区），sort（按照字典进行排序，默认按照ASCII码值） and spill to disk
+shuffler过程详解：
+	每个map task都有一个内存缓冲区（默认是100M），存储这map的输出结果
+	当缓存区快满的时候需要将缓冲区的数据以一个临时文件的方式存放到磁盘（spill）
+	溢写是由单独线程来完成的，不影响往缓冲区写map结果的线程（spill.percent，默认是0.8）
+	当溢写线程启动后，需要对这80M空间内的key做排序（Sort）
+
+	假如client设置过Combiner，那么现在就是使用Combiner的时候了。将有相同key的key/value对的value加起来，减少溢写到磁盘的数据量
+	对整个map task结束后，再对磁盘中这个map task产生的临时文件做合并（merge），对于“world”就是像这样｛“world1”，[5,8,2,...]｝，假如有Combiner｛world1[15]｝
+	reduce从tasktracker copy数据
+	copy过来的数据会先放在内存缓存区中，这里的缓冲区大小要比map端的更为灵活，它基于JVM的heap size设置
+	merge有三种形式：1）内存到内存，2）内存到磁盘，3）磁盘到磁盘。merge从不同tasktracker上拿到的数据
+MapReduce的split大小：
+	max.split(100M)
+	min.split(10M)
+	block(64M)
+	max(min.split,min(max.split,block))
+
+MapReduce的架构（主从架构）
+	主JobTracker：负责调度分配每一个子任务task运行于TaskTracker上，如果发现有失败的task就重新分配其任务到其他节点。
+		每一个hadoop集群中只有一个JobTracker，一般运行在Master节点上
+	从TaskTracker：TaskTracker主动与JobTracker通信，接受作业，并负责直接执行每一个任务，为了减少网络带宽，TaskTracker最好运行在HDFS的DataNode上
+管理界面查看：
+	HDFS：http://node1:50070
+	MapReduce：http://node1:50030
+
+关注度权重公式：
+W = TF * Log(N / DF)
+TF:当前关键字在该条微博中出现次数
+DF:当前关键字在所有微博中出现的微博条数
+N :微博的总条数
+

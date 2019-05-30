@@ -1,0 +1,8 @@
+maven提出来依赖
+    mvn dependency:copy-dependencies -DoutputDirectory=依赖目录
+java编译
+    javac -cp .;依赖目录/* BatSearchNew.java
+    java -cp .;依赖目录/* BatSearchNew 参数
+java接口：
+	一系列方法的声明，方法特征的集合，接口只有方法的特征没有方法的实现，可以被不同的类实现、具有不同的行为（功能）
+

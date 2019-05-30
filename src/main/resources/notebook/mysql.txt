@@ -1,0 +1,10 @@
+一、高版本的mysql会有登录密码策略：
+	调低策略：
+		set global validate_password_policy=0;
+		set global validate_password_length=0;
+	创建用户：
+		 CREATE USER 'test'@'%' IDENTIFIED BY 'test';
+	设置用户权限：
+		grant all on *.* to username@’%’
+
+show binlog events in 'mysql-bin.000002';

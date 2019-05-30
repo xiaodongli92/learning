@@ -1,0 +1,2 @@
+创建完database之后需要授权：
+db.createUser({user:"name",pwd:"password",roles:[{role:"readWrite",db:"databaseName"}]})

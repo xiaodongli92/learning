@@ -1,0 +1,391 @@
+hadoop2.x产生背景：
+	1中的HDFS和MapReduce在高可用、扩展性等方面存在问题
+	HDFS存在的问题：
+		NameNode单点故障，难以应用于在线场景
+		NameNode压力过大，且内存受影响，影响系统扩展性
+	MapReduce存在的问题：
+		JobTracker访问压力大，影响系统扩展性
+		难以支持除MapReduce之外的计算框架，比如spark、storm
+组成：
+	HDFS：
+		NNFederation（联邦）：解决内存受限问题，水平扩展，支持多个NameNode，每个NameNode分管一部分目录，所有NameNode共享所有DataNode存储资源
+		HA（High Availability）：通过主备NameNode解决单点故障，如果主NameNode发生故障，则切换到备NameNode上
+	MapReduce:运行在YARN上的MR
+	TARN：资源管理系统
+HDFS HA：
+	主备NameNode
+	解决单点故障：
+		主NameNode对外提供服务，备NameNode同步主NameNode元数据，以待切换
+		所有DataNode同时向两个NameNode汇报数据块信息
+	两种切换选择：
+		手动切换：通过命令实现主备之间切换，可以用HDFS升级等场合
+		自动切换：基于Zookeeper实现
+	基于Zookeeper自动切换方案：
+		ZookeeperFailoverController：监控NameNode健康状态
+		并向Zookeeper注册NameNode
+		NameNode挂掉后，ZXFC为NameNode竞争锁，获得ZXFC锁
+		备NameNode变为active
+HDFS Federation（联邦）:
+	通过多个NameNode/NameSpace把元数据的存储和管理分散到多个节点中，使到NameNode/NameSpace可以通过增加机器来进行水平扩展
+	能把单个NameNode的负载分散到多个节点中，在HDFS数据规模较大的时候不会降低HDFS的性能。
+	可以通过多个NameSpace来隔离不同类型的应用，把不同类型应用的HDFS元数据的存储和管理分派到不同的NameNode中
+YARN（Yet Another Resource Negotiator）
+	2.0引进的资源管理系统，直接从MRv1演化而来
+		核心思想：将MRv1中JobTracker的资源管理和任务调度两个功能分开，分别由ResourceManager和ApplicationMaster进程实现
+		ResourceManager：负责整个集群的资源管理和调度
+		ApplicationMaster：负责应用程序相关事物，比如任务调度、任务监控和容错等等
+	YARN的引入，使得多个计算框架可以运行在一个集群中
+		每个应用程序对应一个ApplicationMaster
+		目前多个计算框架可以运行在YARN上，比如MapReduce、spark、storm
+MapReduce on YARN：
+	将MapReduce运行在YARN上，而不是由JobTracker和TaskTracker构建的MRv1系统中
+	基本模块：
+		YARN：负责资源管理和调度
+		MRAppMaster：负责任务切分、任务调度、任务监控和容错等等
+		MapTask/ReduceTask：任务驱动引擎，与MRv1一致
+	每个MapReduce作业对应一个MRAppMaster
+		MRAppMaster：任务调度
+		YARN将资源分配给MRAppMaster
+		MRAppMaster进一步将资源分配给内部的任务
+	MRAppMaster：
+		失败后由YARN重新启动
+		任务失败后，MRAppMaster重新申请资源
+机器部署图：
+		NameNode	DataNode	Zookeeper	ZookeeperFailoverController	JournalNode	ResourceManager	ApplicationMaster
+	node1	1		0		1		1				0		1		0
+	node2	1		1		1		1				1		0		1
+	node3	0		1		1		0				1		0		1
+	node4	0		1		0		0				1		0		1
+	JournalNode：共享元数据，一般节点都是基数个的，从3起步
+部署配置：（/home/hadoop-2.5.2/etc/hadoop/）
+------------------------------------------------分割线------------------------------------------------------------------------------------------
+	hadoop-env.sh、yarn-env.sh：
+		export JAVA_HOME=/usr/lib/jvm/java-1.8.0
+------------------------------------------------分割线------------------------------------------------------------------------------------------
+	hdfs-site.xml：
+<configuration>
+<!-- 服务名 -->
+	<property>
+		<name>dfs.nameservices</name>
+		<value>cluster1</value>
+	</property>
+	<!-- 副本数量 -->
+	<property>
+        	<name>dfs.replication</name>
+	        <value>3</value>
+	</property>
+	<!-- NameNode文件路径 -->
+	<property>
+        	<name>dfs.namenode.name.dir</name>
+	        <value>file:/opt/data/hadoop/data/dfs/name</value>
+	</property>
+	<!-- DataNode文件路径 -->
+	<property>
+        	<name>dfs.datanode.data.dir</name>
+	        <value>file:/opt/data/hadoop/data/dfs/data</value>
+	</property>
+	<!-- SecondaryNameNode -->
+	<property>
+        	<name>dfs.namenode.secondary.http-address</name>
+	        <value>nn1:9001</value>
+        </property>
+	<!-- webhdfs -->
+	<property>
+        	<name>dfs.webhdfs.enabled</name>
+	        <value>true</value>
+	</property>
+	<!-- 所有的NameNode命名 -->
+	<property>
+		<name>dfs.ha.namenodes.cluster1</name>
+		<value>nn1,nn2</value>
+	</property>
+	<!-- rpc协议的主机和端口 -->
+	<property>
+		<name>dfs.namenode.rpc-address.cluster1.nn1</name>
+		<value>nn1:9000</value>
+	</property>
+	<property>
+		<name>dfs.namenode.rpc-address.cluster1.nn2</name>
+		<value>nn2:9000</value>
+	</property>
+	<!-- http协议的主机和端口 -->
+	<property>
+		<name>dfs.namenode.http-address.cluster1.nn1</name>
+		<value>nn1:50070</value>
+	</property>
+	<property>
+		<name>dfs.namenode.http-address.cluster1.nn2</name>
+		<value>nn2:50070</value>
+	</property>
+	<!-- JournalNode主机和端口 -->
+	<property>
+		<name>dfs.namenode.shared.edits.dir</name>
+		<value>qjournal://dn1:8485;dn2:8485;dn3:8485/cluster1</value>
+	</property>
+	<!-- HDFS client去找到active NameNode -->
+	<property>
+		<name>dfs.client.failover.proxy.provider.cluster1</name>
+		<value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+	</property>
+	<!-- 用于停止活动NameNode节点故障转移期间的脚本或者java类 -->
+	<property>
+		<name>dfs.ha.fencing.methods</name>
+		<value>sshfence</value>
+	</property>
+	<property>
+		<name>dfs.ha.fencing.ssh.private-key-files</name>
+		<value>/root/.ssh/id_dsa</value>
+	</property>
+	<!-- JournalNode存储的位置 -->
+	<property>
+		<name>dfs.journalnode.edits.dir</name>
+		<value>/opt/data/hadoop/data/tmp/journal</value>
+	</property>
+	<!-- 主备NameNode自动切换 -->
+	<property>
+		<name>dfs.ha.automatic-failover.enabled</name>
+		<value>true</value>
+	 </property>
+	<!-- 工作线程池 大小=20logN -->
+	<property>  
+        	<name>dfs.namenode.handler.count</name>  
+        	<value>10</value>  
+        </property>
+</configuration>
+ ------------------------------------------------分割线------------------------------------------------------------------------------------------
+	core-site.xml：
+<configuration>
+	<!-- NameNode入口 -->
+	<property>
+		<name>fs.defaultFS</name>
+		<value>hdfs://cluster1</value>
+	</property>
+	<!-- Zookeeper主机和端口 -->
+	<property>
+		<name>ha.zookeeper.quorum</name>
+		<value>dn1:2181,dn2:2181,dn3:2181</value>
+	 </property>
+	<!-- hadoop临时文件目录 -->
+	<property>
+		<name>hadoop.tmp.dir</name>
+		<value>/opt/data/hadoop/tmp</value>
+	</property>
+	<!-- 缓存大小 -->
+	<property>
+        	<name>io.file.buffer.size</name>
+	        <value>131072</value>
+        </property>
+</configuration>
+------------------------------------------------分割线------------------------------------------------------------------------------------------
+	slaves：
+		DataNode节点
+			dn1
+			dn2
+			dn3
+------------------------------------------------分割线------------------------------------------------------------------------------------------
+Zookeeper安装配置：
+	在conf目录中，先复制zoo_sample.cfg zoo.cfg
+	修改Zookeeper的文件目录：dataDir=/opt/zookeeper/
+	在最后添加
+	server.1=dn1:2888:3888
+	server.2=dn2:2888:3888
+	server.3=dn3:2888:3888
+	然后分别在各个节点机器的dataDir（/opt/zookeeper/）目录下创建myid文件，并在其中填写相应的id
+------------------------------------------------分割线------------------------------------------------------------------------------------------
+MapReduce配置：
+	mapred-site.xml：
+<configuration>
+	<!-- 指定MapReduce的环境是yarn -->
+	<property>
+		<name>mapreduce.framework.name</name>
+		<value>yarn</value>
+	</property>	
+</configuration>
+------------------------------------------------分割线------------------------------------------------------------------------------------------
+yarn配置：
+	yarn-site.xml
+<configuration>
+
+<!-- Site specific YARN configuration properties -->
+
+<!-- 配置 shuffle server -->
+	<property>
+		<name>yarn.nodemanager.aux-services</name>
+		<value>mapreduce_shuffle</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+		<value>org.apache.hadoop.mapred.ShuffleHandler</value>
+	</property>
+	<!-- 尝试连接ResourceManager的频率 -->
+	<property>
+        	<name>yarn.resourcemanager.connect.retry-interval.ms</name>
+	        <value>2000</value>
+	</property>
+	<!-- ha配置 -->
+	<property>
+        	<name>yarn.resourcemanager.ha.enabled</name>
+	        <value>true</value>
+	</property>
+	<property>
+        	<name>yarn.resourcemanager.ha.rm-ids</name>
+	        <value>rm1,rm2</value>
+	</property>
+        <property>
+        	<name>yarn.resourcemanager.ha.automatic-failover.enabled</name>
+	        <value>true</value>
+	</property>
+	<property>
+        	<name>yarn.resourcemanager.hostname.rm1</name>
+	        <value>nn1</value>
+	</property>
+	<property>
+        	<name>yarn.resourcemanager.hostname.rm2</name>
+	        <value>nn2</value>
+	</property>
+	<!-- 在NameNode1上配置rm1,在NameNode2上配置rm2 -->
+	<property>
+	        <name>yarn.resourcemanager.ha.id</name>
+	        <value>rm1</value>
+	</property>
+	<!-- 开启自动恢复功能 -->
+	<property>
+        	<name>yarn.resourcemanager.recovery.enabled</name>
+	        <value>true</value>
+	</property>
+	<!-- 与zookeeper连接 -->
+	<property>
+        	<name>yarn.resourcemanager.zk-state-store.address</name>
+	        <value>dn1:2181,dn2:2181,dn3:2181</value>
+	</property>
+	<property>
+        	<name>yarn.resourcemanager.store.class</name>
+	        <value>org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore</value>
+	</property>
+	<property>
+        	<name>yarn.resourcemanager.zk-address</name>
+	        <value>dn1:2181,dn2:2181,dn3:2181</value>
+	</property>
+	<property>
+        	<name>yarn.resourcemanager.cluster-id</name>
+	        <value>cluster1-yarn</value>
+	</property>
+	<!-- schelduler失联等待时间 -->
+	<property>
+	        <name>yarn.app.mapreduce.am.scheduler.connection.wait.interval-ms</name>
+	        <value>5000</value>
+	</property>
+	<!-- 配置rm1 -->
+	<property>
+	        <name>yarn.resourcemanager.address.rm1</name>
+	        <value>nn1:8032</value>
+	</property>
+	<property>
+        	<name>yarn.resourcemanager.scheduler.address.rm1</name>
+	        <value>nn1:8030</value>
+	</property>
+	<property>
+        	<name>yarn.resourcemanager.webapp.address.rm1</name>
+	        <value>nn1:8088</value>
+	</property>
+	<property>
+        	<name>yarn.resourcemanager.resource-tracker.address.rm1</name>
+	        <value>nn1:8031</value>
+	</property>
+	<property>
+        	<name>yarn.resourcemanager.admin.address.rm1</name>
+	        <value>nn1:8033</value>
+	</property>
+	<property>
+	        <name>yarn.resourcemanager.ha.admin.address.rm1</name>
+	        <value>nn1:23142</value>
+	</property>
+	<!-- 配置rm2 -->
+	<property>
+                <name>yarn.resourcemanager.address.rm2</name>
+                <value>nn2:8032</value>
+        </property>
+        <property>
+                <name>yarn.resourcemanager.scheduler.address.rm2</name>
+                <value>nn2:8030</value>
+        </property>
+        <property>
+                <name>yarn.resourcemanager.webapp.address.rm2</name>
+                <value>nn2:8088</value>
+        </property>
+        <property>
+                <name>yarn.resourcemanager.resource-tracker.address.rm2</name>
+                <value>nn2:8031</value>
+        </property>
+        <property>
+                <name>yarn.resourcemanager.admin.address.rm2</name>
+                <value>nn2:8033</value>
+        </property>
+        <property>
+                <name>yarn.resourcemanager.ha.admin.address.rm2</name>
+                <value>nn2:23142</value>
+        </property>
+
+    	<property>
+	        <name>yarn.nodemanager.local-dirs</name>
+	        <value>/opt/data/hadoop/data/yarn/local</value>
+    	</property>
+	<property>
+        	<name>yarn.nodemanager.log-dirs</name>
+	        <value>/opt/data/hadoop/log/yarn</value>
+    	</property>
+	<property>
+        	<name>mapreduce.shuffle.port</name>
+	        <value>23080</value>
+    	</property>
+	<!-- 故障处理类 -->
+    	<property>
+        	<name>yarn.client.failover-proxy-provider</name>
+	        <value>org.apache.hadoop.yarn.client.ConfiguredRMFailoverProxyProvider</value>
+    	</property>
+    	<property>
+        	<name>yarn.resourcemanager.ha.automatic-failover.zk-base-path</name>
+	        <value>/yarn-leader-election</value>
+    	</property>
+
+</configuration>
+------------------------------------------------分割线------------------------------------------------------------------------------------------
+一些命令：
+	创建目录：bin/hdfs dfs -mkdir -p /usr/file
+	上传文件：bin/hdfs dfs -put 
+	测试用例：
+		bin/hadoop fs -mkdir -p /input		//创建目录
+		bin/hadoop fs -put 文件路径 hadoop文件路径    //上传文件
+		bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.2.jar wordcount /input /output/	//运行程序
+ ------------------------------------------------分割线------------------------------------------------------------------------------------------
+启动顺序：
+	1、启动Zookeeper：zkServer.sh start
+	2、启动JournalNode：sbin/hadoop-daemon.sh start journalnode
+	3、格式化NameNode：
+		在其中一个NameNode中：bin/hdfs namenode -format
+		启动：sbin/hadoop-daemon.sh start namenode
+		在没有格式化的NameNode中拷贝NameNode文件目录：
+		bin/hdfs namenode -bootstrapStandby
+	4、ZKFC格式化：
+		bin/hdfs zkfc -formatZK
+	5、停掉已经启动的服务：
+		sbin/stop-dfs.sh
+	6、启动所有的服务：
+		sbin/start-dfs.sh
+
+新的启动顺序：
+	1、分别启动Zookeeper：zkServer.sh start
+	2、查看Zookeeper状态：zkServer.sh status
+	3、zookeeper是否能够通过客户端访问：zkCli.sh
+	4、格式化zookeeper集群（目的是在ZooKeeper集群上建立HA的相应节点）在其中一个格式化就行：
+		bin/hdfs zkfc -formatZK
+	5、分别启动JournalNode：sbin/hadoop-daemon.sh start journalnode
+	6、格式化集群的一个NameNode：bin/hdfs namenode -format
+	7、分别启动ZooKeeperFailoverCotroller：sbin/hadoop-daemon.sh start zkfc
+	8、启动刚才格式化的namenode：sbin/hadoop-daemon.sh start namenode
+	9、再启动未格式化的namenode：sbin/hadoop-daemon.sh start namenode
+	10、在node1上启动所有的datanode： sbin/hadoop-daemons.sh start datanode
+	11、在node1上启动yarn：sbin/start-yarn.sh
+	12、验证HA的故障自动转移是否好用：kill掉node1上的namenode进程
+<!-- 看到44 -->
+

@@ -1,0 +1,53 @@
+1、安装
+	下载:http://hive.apache.org/downloads.html
+	安装：
+		tar -xzvf hive-x.y.z.tar.gz
+		export HIVE_HOME={{pwd}}
+		export PATH=$HIVE_HOME/bin:$PATH
+
+	配置：
+		在$HIVE_HOME/conf下：
+		mv hive-default.xml.template hive-site.xml
+		修改：
+	<!-- jdbc:mysql://IP/databaseName -->
+	<property>
+	    <name>javax.jdo.option.ConnectionURL</name>
+	    <value>jdbc:mysql://nn1/hive</value>
+	</property>
+	<!-- 驱动 -->
+	<property>
+	    <name>javax.jdo.option.ConnectionDriverName</name>
+	    <value>com.mysql.jdbc.Driver</value>
+	</property>
+	<!-- mysql 用户名 -->
+	<property>
+	    <name>javax.jdo.option.ConnectionUserName</name>
+	    <value>root</value>
+	</property>
+	<!-- 密码 -->
+	<property>
+	    <name>javax.jdo.option.ConnectionPassword</name>
+	    <value>admin</value>
+	</property>
+
+	将所有的system:java.io.tmpdir都替换/opt/data/hive/tmpdir
+
+2、运行
+	运行之前：
+		schematool -dbType mysql -initSchema
+	Hive 运行时，元数据存储在关系型数据库里面
+3、例子
+1,张三,20,技术部
+2,李四,22,销售部
+3,王五,23,事业部
+4,孙六,25,销售部
+create table emp(
+id int,
+name string,
+age int,
+dept_name string
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+load data local inpath '/home/xiaodong/file/emp.text' into table emp;
