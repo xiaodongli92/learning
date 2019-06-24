@@ -6,8 +6,9 @@ import org.apache.flink.streaming.api.scala._
 /**
   * Created by xiaodong36 on 2018/2/11.
   * word count example
+  * nc -lk 9998
   */
-object FlinkWordCount {
+object WordCount {
 
     case class WordWithCount(word: String, count: Long)
 
